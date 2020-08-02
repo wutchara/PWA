@@ -9,6 +9,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    console.log(appName+' Fetching somethind ...', event);
+    console.log(appName+' Fetching something ...', event);
     event.respondWith(fetch(event.request));
 });
