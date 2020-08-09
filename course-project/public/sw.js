@@ -1,9 +1,10 @@
 const appName = '[Service Worker]';
+const cacheKey = ['static', 'dynamic'];
 
 self.addEventListener('install', (event) => {
     console.log(appName+' Installing Service Worker ....', event);
     event.waitUntil(
-        caches.open('static')
+        caches.open(cacheKey[0])
         .then((cache) => {
             console.log(appName+' Pre-caching App shell.');
             cache.addAll([
@@ -30,6 +31,18 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
     console.log(appName+' Activating Service Worker ....', event);
+    // remove old cache version
+    event.waitUntil(
+        caches.keys().then((keyList => {
+            return Promise.all(keyList.map((key) => {
+                if(!cacheKey.includes(key)){
+                    console.log(appName+' Removing old cache.', key);
+                    return caches.delete(key);
+                }
+            }));
+        }))
+    );
+
     return self.ClientRectList.claim();
 });
 
@@ -42,14 +55,14 @@ self.addEventListener('fetch', (event) => {
                 return response;
             }else{
                 return fetch(event.request).then((res) => {
-                    return caches.open('dynamic').then((cache) => {
+                    return caches.open(cacheKey[1]).then((cache) => {
                         cache.put(event.request.url, res.clone());
                         return res;
                     });
                 });
             }
         }).catch(err => {
-            
+
         })
     );
 });
