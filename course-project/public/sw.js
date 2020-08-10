@@ -10,6 +10,7 @@ self.addEventListener('install', (event) => {
             cache.addAll([
                 '/',
                 '/index.html',
+                '/offline.html',
                 '/src/js/app.js',
                 '/src/js/feed.js',
                 '/src/js/promise.js',
@@ -56,13 +57,15 @@ self.addEventListener('fetch', (event) => {
             }else{
                 return fetch(event.request).then((res) => {
                     return caches.open(cacheKey[1]).then((cache) => {
-                        cache.put(event.request.url, res.clone());
+                        // cache.put(event.request.url, res.clone());
                         return res;
                     });
                 });
             }
         }).catch(err => {
-
+            return caches.open(cacheKey[0]).then(cache => {
+                return cache.match('/offline.html');
+            });
         })
     );
 });
