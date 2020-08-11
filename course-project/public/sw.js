@@ -30,6 +30,19 @@ self.addEventListener('install', (event) => {
     )
 });
 
+function trimCache(cacheName, maxItems) {
+    caches.open(cacheName)
+    .then((cache) => {
+        return cache.keys();
+    }).then((keys) => {
+        console.log('keys', keys, maxItems);
+        if(keys.length > maxItems){
+            cache.delete(keys[0])
+            .then(trimCache(cacheName, maxItems));
+        }
+    })
+};
+
 self.addEventListener('activate', (event) => {
     console.log(appName+' Activating Service Worker ....', event);
     // remove old cache version
@@ -57,7 +70,8 @@ self.addEventListener('fetch', (event) => {
             }else{
                 return fetch(event.request).then((res) => {
                     return caches.open(cacheKey[1]).then((cache) => {
-                        // cache.put(event.request.url, res.clone());
+                        // trimCache(cacheKey[1], 3);
+                        cache.put(event.request.url, res.clone());
                         return res;
                     });
                 });
