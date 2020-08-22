@@ -17,6 +17,9 @@
   "author": "Maximilian Schwarzmüller",
   "license": "ISC",
   "devDependencies": {
-    "http-server": "^0.10.0"
+    "http-server": "^0.12.3"
+  },
+  "engines": {
+    "node": ">=0.12"
   }
 }
