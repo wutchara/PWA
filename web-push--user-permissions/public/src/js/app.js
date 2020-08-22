@@ -31,6 +31,61 @@ window.addEventListener('beforeinstallprompt', function(event) {
   return false;
 });
 
+function configurePushSub() {
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  var reg;
+  navigator.serviceWorker.ready
+    .then(function(swreg) {
+      reg = swreg;
+      return swreg.pushManager.getSubscription();
+    })
+    .then(function(sub) {
+      // https://blog.mozilla.org/services/2016/04/04/using-vapid-with-webpush/
+      if (sub === null) {
+        // Create a new subscription
+        // command `npm run web-push generate-vapid-keys`
+        // =======================================
+
+        // Public Key:
+        // BNR-TXYtMHBseoBlzfUYltjXX6Y0lTHgAo8p-vE0PbzGq8Z02vfeLz6pEN-Bt6G3ixe9zLnOSMn3QN0HVUXkOpM
+
+        // Private Key:
+        // tOoPLFtq0WjngGxXIOow2k167tuP32H6Vj77FxPYpp4
+
+        // =======================================
+        var vapidPublicKey = 'BNR-TXYtMHBseoBlzfUYltjXX6Y0lTHgAo8p-vE0PbzGq8Z02vfeLz6pEN-Bt6G3ixe9zLnOSMn3QN0HVUXkOpM';
+        var convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
+        return reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidPublicKey
+        });
+      } else {
+        // We have a subscription
+      }
+    })
+    .then(function(newSub) {
+      return fetch('https://pwagram-99adf.firebaseio.com/subscriptions.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(newSub)
+      })
+    })
+    .then(function(res) {
+      if (res.ok) {
+        displayConfirmNotification();
+      }
+    })
+    .catch(function(err) {
+      console.log(err);
+    });
+}
+
 displayConfirmNotification = () => {
   if('serviceWorker' in navigator){
     const options = {
@@ -63,6 +118,8 @@ function askForNotificationPermission() {
       console.log('No notification permission granted!');
     } else {
       displayConfirmNotification();
+      // TODO: setup firebase first
+      // configurePushSub();
     }
   });
 }
